@@ -1,17 +1,21 @@
 #!/usr/bin/env python3
 
-import requests
+import datetime
+import functools
 from os import path
 import urllib.parse
 
 from pigwig import PigWig, Response
 from pigwig.exceptions import HTTPException
+import requests
 
 import config
 import db
 
 pea_dir = path.normpath(path.dirname(path.abspath(__file__)))
 template_dir = path.join(pea_dir, 'templates')
+
+LOGIN_TIME = datetime.timedelta(days=30)
 
 def routes():
 	return [
@@ -52,15 +56,36 @@ def login(request):
 	resp.set_secure_cookie(request, 'username', username)
 	return resp
 
-def oauth(request):
+def authed(f):
+	@functools.wraps(f)
+	def wrapper(request):
+		user_id = request.get_secure_cookie('user_id', LOGIN_TIME)
+		if not user_id:
+			raise HTTPException(401, 'log in first')
+		username = request.get_secure_cookie('username', LOGIN_TIME)
+		return f(request, user_id, username)
+	return wrapper
+
+@authed
+def oauth(request, user_id, username):
 	code = request.query['code']
+
 	r = requests.post('https://login.eveonline.com/oauth/token',
 			auth=(config.client_id, config.secret_key),
 			data={'grant_type': 'authorization_code', 'code': code})
 	r.raise_for_status()
 	data = r.json()
-	access_token = data['access_token']
+	token = data['access_token']
 	refresh_token = data['refresh_token']
+
+	r = requests.get('https://login.eveonline.com/oauth/verify', headers={'Authorization': 'Bearer ' + token})
+	r.raise_for_status()
+	data = r.json()
+	char_id = data['CharacterID']
+	char_name = data['CharacterName']
+	token_expires = data['ExpiresOn']
+	db.create_eve_char(char_id, user_id, char_name, token, token_expires, refresh_token)
+	return Response(code=307, location='/assets')
 
 login_url = 'https://login.eveonline.com/oauth/authorize?' + urllib.parse.urlencode({
 	'response_type': 'code',
@@ -68,8 +93,11 @@ login_url = 'https://login.eveonline.com/oauth/authorize?' + urllib.parse.urlenc
 	'client_id': config.client_id,
 	'scope': 'publicData characterNavigationWrite characterWalletRead characterAssetsRead corporationWalletRead corporationAssetsRead esi-wallet.read_character_wallet.v1 esi-search.search_structures.v1 esi-universe.read_structures.v1 esi-markets.structure_markets.v1 esi-corporations.read_structures.v1',
 })
-def assets(request):
-	return Response.render(request, 'assets.jinja2', {'login_url': login_url})
+
+@authed
+def assets(request, user_id, username):
+	return Response.render(request, 'assets.jinja2',
+			{'login_url': login_url, 'user_id': user_id, 'username': username})
 
 app = PigWig(routes, template_dir=template_dir, cookie_secret=config.cookie_secret)
 def main():

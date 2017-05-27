@@ -1,4 +1,4 @@
-DROP TABLE IF EXISTS "eve_characters";
+DROP TABLE IF EXISTS "eve_chars";
 DROP TABLE IF EXISTS "users";
 
 CREATE TABLE "users" (
@@ -8,11 +8,11 @@ CREATE TABLE "users" (
 	UNIQUE("username")
 );
 
-CREATE TABLE "eve_characters" (
+CREATE TABLE "eve_chars" (
 	"char_id" integer PRIMARY KEY,
 	"user_id" integer NOT NULL REFERENCES "users" ("user_id"),
 	"char_name" varchar(64) NOT NULL,
-	"token" varchar(64) NOT NULL,
+	"token" varchar(128) NOT NULL,
 	"token_expires" timestamp NOT NULL,
-	"refresh_token" varchar(64) NOT NULL
+	"refresh_token" varchar(128) NOT NULL
 );
