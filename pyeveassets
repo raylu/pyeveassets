@@ -23,6 +23,7 @@ def routes():
 		('POST', '/register', register),
 		('POST', '/login', login),
 		('GET', '/assets', assets),
+		('GET', '/assets/<char_id>', char_assets),
 		('GET', '/oauth', oauth),
 	]
 
@@ -58,12 +59,12 @@ def login(request):
 
 def authed(f):
 	@functools.wraps(f)
-	def wrapper(request):
+	def wrapper(request, **kwargs):
 		user_id = request.get_secure_cookie('user_id', LOGIN_TIME)
 		if not user_id:
 			raise HTTPException(401, 'log in first')
 		username = request.get_secure_cookie('username', LOGIN_TIME)
-		return f(request, user_id, username)
+		return f(request, user_id, username, **kwargs)
 	return wrapper
 
 @authed
@@ -96,8 +97,31 @@ login_url = 'https://login.eveonline.com/oauth/authorize?' + urllib.parse.urlenc
 
 @authed
 def assets(request, user_id, username):
+	chars = db.iter_chars(user_id)
 	return Response.render(request, 'assets.jinja2',
-			{'login_url': login_url, 'user_id': user_id, 'username': username})
+			{'login_url': login_url, 'username': username, 'chars': chars})
+
+@authed
+def char_assets(request, user_id, username, char_id):
+	char = db.get_char(user_id, char_id)
+	now = datetime.datetime.utcnow()
+	if char['token_expires'] < now:
+		r = requests.post('https://login.eveonline.com/oauth/token',
+				data={'grant_type': 'refresh_token', 'refresh_token': char['refresh_token']})
+		r.raise_for_status()
+		data = r.json()
+		token = data['access_token']
+		token_expires = now + datetime.timedelta(seconds=data['expires_in'])
+		refresh_char(char_id, token, token_expires)
+	else:
+		token = char['token']
+	r = requests.get('https://esi.tech.ccp.is/v1/characters/%s/assets/' % char_id,
+			headers={'Authorization': 'Bearer ' + token})
+	r.raise_for_status()
+	data = r.json()
+	print(data)
+	return Response.render(request, 'char_assets.jinja2',
+			{'char_name': char_name})
 
 app = PigWig(routes, template_dir=template_dir, cookie_secret=config.cookie_secret)
 def main():
