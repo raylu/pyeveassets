@@ -2,21 +2,25 @@
 
 {% block body %}
 	<h1>pyeveassets</h1>
-	<h2>login</h2>
-	<form method="post" action="/login">
-		username: <input type="text" name="username">
-		<br>
-		password: <input type="password" name="password">
-		<br>
-		<input type="submit" value="login">
-	</form>
+	{% if logged_in %}
+		go to <a href="/assets">assets</a>
+	{% else %}
+		<h2>login</h2>
+		<form method="post" action="/login">
+			username: <input type="text" name="username">
+			<br>
+			password: <input type="password" name="password">
+			<br>
+			<input type="submit" value="login">
+		</form>
 
-	<h2>register</h2>
-	<form method="post" action="/register">
-		username: <input type="text" name="username">
-		<br>
-		password: <input type="password" name="password">
-		<br>
-		<input type="submit" value="register">
-	</form>
+		<h2>register</h2>
+		<form method="post" action="/register">
+			username: <input type="text" name="username">
+			<br>
+			password: <input type="password" name="password">
+			<br>
+			<input type="submit" value="register">
+		</form>
+	{% endif %}
 {% endblock body %}

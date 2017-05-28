@@ -1,11 +1,13 @@
 {% extends 'base.jinja2' %}
 
 {% block body %}
-	hello {{username}}!
-	<br>
-	<a href="{{ oauth_url }}">
-		<img src="static/sso.png">
-	</a>
+	<p>
+		hello {{username}}!
+		(<a href="/logout">logout</a>)
+	</p>
+	<p>
+		add a character: <a href="{{ oauth_url }}"><img src="static/sso.png"></a>
+	</p>
 
 	<h2>characters</h2>
 	{% for char in chars %}

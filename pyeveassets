@@ -26,13 +26,18 @@ def routes():
 		('GET', '/', root),
 		('POST', '/register', register),
 		('POST', '/login', login),
+		('GET', '/logout', logout),
 		('GET', '/assets', assets),
 		('GET', '/assets/<char_id>', char_assets),
 		('GET', '/oauth', oauth),
 	]
 
 def root(request):
-	return Response.render(request, 'root.jinja2', {})
+	user_id = request.get_secure_cookie('user_id', LOGIN_TIME)
+	logged_in = False
+	if user_id:
+		logged_in = True
+	return Response.render(request, 'root.jinja2', {'logged_in': logged_in})
 
 def register_form(request):
 	return Response.render(request, 'register.jinja2', {})
@@ -98,6 +103,12 @@ oauth_url = 'https://login.eveonline.com/oauth/authorize?' + urllib.parse.urlenc
 	'client_id': config.client_id,
 	'scope': 'publicData characterNavigationWrite characterWalletRead characterAssetsRead corporationWalletRead corporationAssetsRead esi-wallet.read_character_wallet.v1 esi-search.search_structures.v1 esi-universe.read_structures.v1 esi-assets.read_assets.v1 esi-markets.structure_markets.v1 esi-corporations.read_structures.v1',
 })
+
+def logout(request):
+	resp = Response(code=303, location='/')
+	resp.set_cookie('username', '', max_age=datetime.timedelta(seconds=-1))
+	resp.set_cookie('user_id', '', max_age=datetime.timedelta(seconds=-1))
+	return resp
 
 @authed
 def assets(request, user_id, username):

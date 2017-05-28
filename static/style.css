@@ -16,6 +16,10 @@ a:hover {
 	color: #5ad;
 }
 
+img {
+	vertical-align: middle;
+}
+
 input, textarea {
 	color: inherit;
 	border: 1px solid #555;
