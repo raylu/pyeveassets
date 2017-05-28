@@ -1,0 +1,6 @@
+base_url = 'http://pyeveassets'
+cookie_secret = b'this is super secret'
+
+# ESI
+client_id = 'abc123'
+secret_key = 'def456'
