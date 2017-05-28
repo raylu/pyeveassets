@@ -4,8 +4,8 @@
 	<a href="/assets">back</a>
 	<h2>{{ char_name }}'s assets</h2>
 
-	{% for station, items in all_items %}
-		<h3>{{ station }}</h3>
+	{% for station, total, items in all_items %}
+		<h3>{{ station }} ({{ (total / 100000000)|round(1) }})</h3>
 		<table>
 			{% for item, quantity, price in items %}
 				<tr>

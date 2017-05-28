@@ -3,6 +3,7 @@
 from collections import defaultdict
 import datetime
 import functools
+import operator
 from os import path
 import urllib.parse
 
@@ -131,19 +132,24 @@ def char_assets(request, user_id, username, char_id):
 
 	types = db.types(tuple(type_ids))
 	item_map = defaultdict(list)
+	station_totals = defaultdict(int)
 	for item in station_items:
 		try:
 			item_name, price = types[item['type_id']]
 		except KeyError:
 			item_name, price = item['type_id'], 0
 		quantity = item.get('quantity', 1)
-		item_map[item['location_id']].append((item_name, quantity, quantity * price))
+		total_price = quantity * price
+		station_id = item['location_id']
+		item_map[station_id].append((item_name, quantity, total_price))
+		station_totals[station_id] += total_price
 
 	stations = db.stations(tuple(station_ids))
 	all_items = []
 	for station_id, item_list in item_map.items():
 		station_name = stations.get(station_id, station_id)
-		all_items.append((station_name, item_list))
+		all_items.append((station_name, station_totals[station_id], item_list))
+	all_items.sort(key=operator.itemgetter(1), reverse=True) # sort by total item price
 
 	return Response.render(request, 'char_assets.jinja2',
 			{'char_name': char_name, 'all_items': all_items})
