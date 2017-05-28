@@ -50,3 +50,7 @@ table.assets td:nth-child(3) {
 	text-align: right;
 	font-family: monospace;
 }
+table.assets ul {
+	margin: 0;
+	display: none;
+}

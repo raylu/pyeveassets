@@ -16,9 +16,9 @@
 						{% endif %}
 					</td>
 					<td>
-						{{ item.name }}
 						{% if item.children %}
-							<ul>
+							<a href="" data-id="{{ item.item_id }}">{{ item.name }}</a>
+							<ul id="{{ item.item_id }}">
 								{% for subitem in item.children recursive %}
 									<li>{{ subitem.name }}</li>
 									{% if subitem.children %}
@@ -26,6 +26,8 @@
 									{% endif %}
 								{% endfor %}
 							</ul>
+						{% else %}
+							{{ item.name }}
 						{% endif %}
 					</td>
 					<td>{{ (item.cumulative_price / 100000000)|round(1) }}</td>
@@ -33,4 +35,6 @@
 			{% endfor %}
 		</table>
 	{% endfor %}
+
+	<script src="/static/char_assets.js"></script>
 {% endblock body %}

@@ -156,7 +156,7 @@ def char_assets(request, user_id, username, char_id):
 		location_type = doc['location_type']
 		location_id = doc['location_id']
 		total_price = quantity * price
-		item = Item(doc['type_id'], item_name, quantity, total_price, location_type, location_id)
+		item = Item(doc['type_id'], doc['item_id'], item_name, quantity, total_price, location_type, location_id)
 		container_map[doc['item_id']] = item
 
 	# build tree
@@ -189,8 +189,9 @@ def char_assets(request, user_id, username, char_id):
 			{'char_id': char_id, 'char_name': char_name, 'all_items': all_items})
 
 class Item:
-	def __init__(self, type_id, name, quantity, total_price, location_type, location_id):
+	def __init__(self, type_id, item_id, name, quantity, total_price, location_type, location_id):
 		self.type_id = type_id
+		self.item_id = item_id
 		self.name = name
 		self.quantity = quantity
 		self.total_price = self.cumulative_price = total_price
