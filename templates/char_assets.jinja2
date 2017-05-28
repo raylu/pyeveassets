@@ -7,11 +7,12 @@
 	{% for station, items in all_items %}
 		<h3>{{ station }}</h3>
 		<div>
-			{% for item, quantity in items %}
+			{% for item, quantity, price in items %}
 				{% if quantity != 1 %}
 					{{ quantity }} ✕
 				{% endif %}
 				{{ item }}
+				{{ (price / 100000000)|round(1) }}
 				<br>
 			{% endfor %}
 		</div>

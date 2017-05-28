@@ -69,10 +69,14 @@ def stations(station_ids):
 	return mapping
 
 def types(type_ids):
-	rows = _select('SELECT "typeID", "typeName" FROM "invTypes" WHERE "typeID" IN %s', type_ids)
+	rows = _select('''
+			SELECT "typeID", "typeName", price FROM "invTypes"
+			LEFT JOIN item_prices ON "invTypes"."typeID" = item_prices.type_id
+			WHERE "typeID" IN %s
+			''', type_ids)
 	mapping = {}
 	for row in rows:
-		mapping[row['typeID']] = row['typeName']
+		mapping[row['typeID']] = (row['typeName'], row['price'])
 	return mapping
 
 def update_prices(prices):

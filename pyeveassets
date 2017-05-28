@@ -132,9 +132,12 @@ def char_assets(request, user_id, username, char_id):
 	types = db.types(tuple(type_ids))
 	item_map = defaultdict(list)
 	for item in station_items:
-		item_name = types.get(item['type_id'], item['type_id'])
+		try:
+			item_name, price = types[item['type_id']]
+		except KeyError:
+			item_name, price = item['type_id'], 0
 		quantity = item.get('quantity', 1)
-		item_map[item['location_id']].append((item_name, quantity))
+		item_map[item['location_id']].append((item_name, quantity, price))
 
 	stations = db.stations(tuple(station_ids))
 	all_items = []
