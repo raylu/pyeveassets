@@ -1,7 +1,7 @@
 from passlib.apps import custom_app_context
 
 import psycopg2
-from psycopg2.extras import DictCursor
+from psycopg2.extras import DictCursor, execute_values
 
 conn = psycopg2.connect('dbname=pyeveassets user=pyeveassets', cursor_factory=DictCursor)
 
@@ -74,3 +74,8 @@ def types(type_ids):
 	for row in rows:
 		mapping[row['typeID']] = row['typeName']
 	return mapping
+
+def update_prices(prices):
+	with conn, conn.cursor() as curs:
+		curs.execute('TRUNCATE TABLE item_prices')
+		execute_values(curs, 'INSERT INTO item_prices (type_id, price) VALUES %s', prices)

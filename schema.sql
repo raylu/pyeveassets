@@ -1,6 +1,6 @@
 DROP TABLE IF EXISTS "eve_chars";
 DROP TABLE IF EXISTS "users";
---DROP TABLE IF EXISTS "item_costs";
+DROP TABLE IF EXISTS "item_prices";
 
 CREATE TABLE "users" (
 	"user_id" serial PRIMARY KEY,
@@ -18,7 +18,7 @@ CREATE TABLE "eve_chars" (
 	"refresh_token" varchar(128) NOT NULL
 );
 
---CREATE TABLE "item_costs" (
---	"type_id" serial PRIMARY KEY,
---	"cost" bigint NOT NULL
---);
+CREATE TABLE "item_prices" (
+	"type_id" serial PRIMARY KEY,
+	"price" bigint NOT NULL
+);
