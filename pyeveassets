@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 
+from collections import defaultdict
 import datetime
 import functools
 from os import path
@@ -16,6 +17,8 @@ pea_dir = path.normpath(path.dirname(path.abspath(__file__)))
 template_dir = path.join(pea_dir, 'templates')
 
 LOGIN_TIME = datetime.timedelta(days=30)
+
+requests.utils.default_headers().update({'User-Agent': 'pyeveassets'})
 
 def routes():
 	return [
@@ -88,40 +91,59 @@ def oauth(request, user_id, username):
 	db.create_eve_char(char_id, user_id, char_name, token, token_expires, refresh_token)
 	return Response(code=307, location='/assets')
 
-login_url = 'https://login.eveonline.com/oauth/authorize?' + urllib.parse.urlencode({
+oauth_url = 'https://login.eveonline.com/oauth/authorize?' + urllib.parse.urlencode({
 	'response_type': 'code',
 	'redirect_uri': config.base_url + '/oauth',
 	'client_id': config.client_id,
-	'scope': 'publicData characterNavigationWrite characterWalletRead characterAssetsRead corporationWalletRead corporationAssetsRead esi-wallet.read_character_wallet.v1 esi-search.search_structures.v1 esi-universe.read_structures.v1 esi-markets.structure_markets.v1 esi-corporations.read_structures.v1',
+	'scope': 'publicData characterNavigationWrite characterWalletRead characterAssetsRead corporationWalletRead corporationAssetsRead esi-wallet.read_character_wallet.v1 esi-search.search_structures.v1 esi-universe.read_structures.v1 esi-assets.read_assets.v1 esi-markets.structure_markets.v1 esi-corporations.read_structures.v1',
 })
 
 @authed
 def assets(request, user_id, username):
 	chars = db.iter_chars(user_id)
 	return Response.render(request, 'assets.jinja2',
-			{'login_url': login_url, 'username': username, 'chars': chars})
+			{'oauth_url': oauth_url, 'username': username, 'chars': chars})
 
 @authed
 def char_assets(request, user_id, username, char_id):
 	char = db.get_char(user_id, char_id)
+	char_name = char['char_name']
 	now = datetime.datetime.utcnow()
 	if char['token_expires'] < now:
 		r = requests.post('https://login.eveonline.com/oauth/token',
-				data={'grant_type': 'refresh_token', 'refresh_token': char['refresh_token']})
+				data={'grant_type': 'refresh_token', 'refresh_token': char['refresh_token']},
+				auth=(config.client_id, config.secret_key))
 		r.raise_for_status()
 		data = r.json()
 		token = data['access_token']
 		token_expires = now + datetime.timedelta(seconds=data['expires_in'])
-		refresh_char(char_id, token, token_expires)
+		db.refresh_char(char_id, token, token_expires)
 	else:
 		token = char['token']
+
 	r = requests.get('https://esi.tech.ccp.is/v1/characters/%s/assets/' % char_id,
 			headers={'Authorization': 'Bearer ' + token})
 	r.raise_for_status()
 	data = r.json()
-	print(data)
+	station_items = list(filter(lambda i: i['location_type'] == 'station', data))
+	type_ids = set(map(lambda i: i['type_id'], station_items))
+	station_ids = set(map(lambda i: i['location_id'], station_items))
+
+	types = db.types(tuple(type_ids))
+	item_map = defaultdict(list)
+	for item in station_items:
+		item_name = types.get(item['type_id'], item['type_id'])
+		quantity = item.get('quantity', 1)
+		item_map[item['location_id']].append((item_name, quantity))
+
+	stations = db.stations(tuple(station_ids))
+	all_items = []
+	for station_id, item_list in item_map.items():
+		station_name = stations.get(station_id, station_id)
+		all_items.append((station_name, item_list))
+
 	return Response.render(request, 'char_assets.jinja2',
-			{'char_name': char_name})
+			{'char_name': char_name, 'all_items': all_items})
 
 app = PigWig(routes, template_dir=template_dir, cookie_secret=config.cookie_secret)
 def main():

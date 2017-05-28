@@ -41,11 +41,14 @@ def create_eve_char(char_id, user_id, char_name, token, token_expires, refresh_t
 	_execute('''
 			INSERT INTO eve_chars (char_id, user_id, char_name, token, token_expires, refresh_token)
 			VALUES (%s, %s, %s, %s, %s, %s)
-			''', char_id, user_id, char_name, token, token_expires, refresh_token)
+			ON CONFLICT (char_id) DO UPDATE
+			SET user_id = %s, char_name = %s, token = %s, token_expires = %s, refresh_token = %s
+			''', char_id, user_id, char_name, token, token_expires, refresh_token,
+			user_id, char_name, token, token_expires, refresh_token)
 
 def refresh_char(char_id, token, token_expires):
 	_execute('''
-			UPDATE eve_chars SET token = %s token_expires = %s, refresh_token = %s
+			UPDATE eve_chars SET token = %s, token_expires = %s
 			WHERE char_id = %s
 			''', token, token_expires, char_id)
 
@@ -57,3 +60,17 @@ def get_char(user_id, char_id):
 			SELECT char_id, char_name, token, token_expires, refresh_token FROM eve_chars
 			WHERE user_id = %s and char_id = %s
 			''', user_id, char_id)
+
+def stations(station_ids):
+	rows = _select('SELECT "stationID", "stationName" FROM "staStations" WHERE "stationID" IN %s', station_ids)
+	mapping = {}
+	for row in rows:
+		mapping[row['stationID']] = row['stationName']
+	return mapping
+
+def types(type_ids):
+	rows = _select('SELECT "typeID", "typeName" FROM "invTypes" WHERE "typeID" IN %s', type_ids)
+	mapping = {}
+	for row in rows:
+		mapping[row['typeID']] = row['typeName']
+	return mapping

@@ -1,5 +1,19 @@
 {% extends 'base.jinja2' %}
 
 {% block body %}
-	{{char_id}}
+	<a href="/assets">back</a>
+	<h2>{{ char_name }}'s assets</h2>
+
+	{% for station, items in all_items %}
+		<h3>{{ station }}</h3>
+		<div>
+			{% for item, quantity in items %}
+				{% if quantity != 1 %}
+					{{ quantity }} ✕
+				{% endif %}
+				{{ item }}
+				<br>
+			{% endfor %}
+		</div>
+	{% endfor %}
 {% endblock body %}
