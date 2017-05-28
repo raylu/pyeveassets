@@ -137,7 +137,7 @@ def char_assets(request, user_id, username, char_id):
 		except KeyError:
 			item_name, price = item['type_id'], 0
 		quantity = item.get('quantity', 1)
-		item_map[item['location_id']].append((item_name, quantity, price))
+		item_map[item['location_id']].append((item_name, quantity, quantity * price))
 
 	stations = db.stations(tuple(station_ids))
 	all_items = []

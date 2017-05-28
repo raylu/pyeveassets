@@ -6,15 +6,18 @@
 
 	{% for station, items in all_items %}
 		<h3>{{ station }}</h3>
-		<div>
+		<table>
 			{% for item, quantity, price in items %}
-				{% if quantity != 1 %}
-					{{ quantity }} ✕
-				{% endif %}
-				{{ item }}
-				{{ (price / 100000000)|round(1) }}
-				<br>
+				<tr>
+					<td>
+						{% if quantity != 1 %}
+							{{ quantity }}✕
+						{% endif %}
+					</td>
+					<td>{{ item }}</td>
+					<td>{{ (price / 100000000)|round(1) }}</td>
+				</tr>
 			{% endfor %}
-		</div>
+		</table>
 	{% endfor %}
 {% endblock body %}

@@ -1,6 +1,8 @@
 {% extends 'base.jinja2' %}
 
 {% block body %}
+	<h1>pyeveassets</h1>
+	<h2>login</h2>
 	<form method="post" action="/login">
 		username: <input type="text" name="username">
 		<br>
@@ -8,7 +10,8 @@
 		<br>
 		<input type="submit" value="login">
 	</form>
-	<br>
+
+	<h2>register</h2>
 	<form method="post" action="/register">
 		username: <input type="text" name="username">
 		<br>

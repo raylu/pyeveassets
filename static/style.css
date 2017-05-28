@@ -1,0 +1,31 @@
+* {
+	box-sizing: border-box;
+}
+
+body {
+	background-color: #000;
+	color: #ddd;
+	font: 18px sans-serif;
+}
+
+a:link, a:visited, a:active {
+	color: #58a;
+	text-decoration: none;
+}
+a:hover {
+	color: #5ad;
+}
+
+input, textarea {
+	color: inherit;
+	border: 1px solid #555;
+	background-color: #222;
+	padding: 3px 5px;
+}
+
+#wrapper {
+	width: 900px;
+	margin: 25px auto 100px;
+	padding: 25px;
+	background-color: #111;
+}

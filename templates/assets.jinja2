@@ -7,7 +7,9 @@
 		<img src="static/sso.png">
 	</a>
 
+	<h2>characters</h2>
 	{% for char in chars %}
-		<br><a href="/assets/{{ char['char_id'] }}">{{ char['char_name'] }}</a>
+		<a href="/assets/{{ char['char_id'] }}">{{ char['char_name'] }}</a>
+		<br>
 	{% endfor %}
 {% endblock body %}
