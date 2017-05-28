@@ -165,9 +165,12 @@ def char_assets(request, user_id, username, char_id):
 		if item.location_type == 'station':
 			station_map[item.location_id].append(item)
 		else:
-			container = container_map[item.location_id]
-			container.children.append(item)
-			item.parent = container
+			try:
+				container = container_map[item.location_id]
+				container.children.append(item)
+				item.parent = container
+			except KeyError: # deliveries - pretend it's a station
+				station_map[item.location_id].append(item)
 
 	# calculate cumulative prices
 	for item in container_map.values():
