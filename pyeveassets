@@ -152,7 +152,7 @@ def char_assets(request, user_id, username, char_id):
 	all_items.sort(key=operator.itemgetter(1), reverse=True) # sort by total item price
 
 	return Response.render(request, 'char_assets.jinja2',
-			{'char_name': char_name, 'all_items': all_items})
+			{'char_id': char_id, 'char_name': char_name, 'all_items': all_items})
 
 app = PigWig(routes, template_dir=template_dir, cookie_secret=config.cookie_secret)
 def main():

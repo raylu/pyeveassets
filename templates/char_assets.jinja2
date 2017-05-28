@@ -2,11 +2,12 @@
 
 {% block body %}
 	<a href="/assets">back</a>
+	<p><img src="https://imageserver.eveonline.com/Character/{{ char_id }}_128.jpg"></p>
 	<h2>{{ char_name }}'s assets</h2>
 
 	{% for station, total, items in all_items %}
 		<h3>{{ station }} ({{ (total / 100000000)|round(1) }})</h3>
-		<table>
+		<table class="assets">
 			{% for item, quantity, price in items %}
 				<tr>
 					<td>

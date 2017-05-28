@@ -9,7 +9,10 @@
 
 	<h2>characters</h2>
 	{% for char in chars %}
-		<a href="/assets/{{ char['char_id'] }}">{{ char['char_name'] }}</a>
+		<a href="/assets/{{ char['char_id'] }}">
+			<img src="https://imageserver.eveonline.com/Character/{{ char['char_id'] }}_32.jpg">
+			{{ char['char_name'] }}
+		</a>
 		<br>
 	{% endfor %}
 {% endblock body %}
