@@ -28,7 +28,9 @@ def _execute(sql, *args):
 
 def create_user(username, password):
 	hashed = custom_app_context.encrypt(password)
-	_execute('INSERT INTO users (username, password) VALUES (%s, %s)', username, hashed)
+	row = _select_one('INSERT INTO users (username, password) VALUES (%s, %s) RETURNING user_id',
+			username, hashed)
+	return row['user_id']
 
 def check_login(username, password):
 	r = _select_one('SELECT user_id, password FROM users WHERE username = %s', username)

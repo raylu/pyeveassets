@@ -44,17 +44,16 @@ def root(request):
 		logged_in = True
 	return Response.render(request, 'root.jinja2', {'logged_in': logged_in})
 
-def register_form(request):
-	return Response.render(request, 'register.jinja2', {})
-
 def register(request):
 	try:
 		username = request.body['username']
 		password = request.body['password']
 	except KeyError:
 		raise HTTPException(400, 'missing keys')
-	db.create_user(username, password)
+	user_id = db.create_user(username, password)
 	resp = Response(code=303, location='/assets')
+	resp.set_secure_cookie(request, 'user_id', user_id)
+	resp.set_secure_cookie(request, 'username', username)
 	return resp
 
 def login(request):
