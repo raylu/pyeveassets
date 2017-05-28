@@ -5,18 +5,30 @@
 	<p><img src="https://imageserver.eveonline.com/Character/{{ char_id }}_128.jpg"></p>
 	<h2>{{ char_name }}'s assets</h2>
 
-	{% for station, total, items in all_items %}
-		<h3>{{ station }} ({{ (total / 100000000)|round(1) }})</h3>
+	{% for station, station_total, items in all_items %}
+		<h3>{{ station }} ({{ (station_total / 100000000)|round(1) }})</h3>
 		<table class="assets">
-			{% for item, quantity, price in items %}
+			{% for item in items recursive %}
 				<tr>
 					<td>
-						{% if quantity != 1 %}
-							{{ quantity }}✕
+						{% if item.quantity != 1 %}
+							{{ item.quantity }}✕
 						{% endif %}
 					</td>
-					<td>{{ item }}</td>
-					<td>{{ (price / 100000000)|round(1) }}</td>
+					<td>
+						{{ item.name }}
+						{% if item.children %}
+							<ul>
+								{% for subitem in item.children recursive %}
+									<li>{{ subitem.name }}</li>
+									{% if subitem.children %}
+										<ul>{{ loop(subitem.children) }}</ul>
+									{% endif %}
+								{% endfor %}
+							</ul>
+						{% endif %}
+					</td>
+					<td>{{ (item.cumulative_price / 100000000)|round(1) }}</td>
 				</tr>
 			{% endfor %}
 		</table>

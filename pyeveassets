@@ -138,32 +138,66 @@ def char_assets(request, user_id, username, char_id):
 	r.raise_for_status()
 	data = r.json()
 	station_items = list(filter(lambda i: i['location_type'] == 'station', data))
-	type_ids = set(map(lambda i: i['type_id'], station_items))
+	type_ids = set(map(lambda i: i['type_id'], data))
 	station_ids = set(map(lambda i: i['location_id'], station_items))
 
+	# prep container map
 	types = db.types(tuple(type_ids))
-	item_map = defaultdict(list)
-	station_totals = defaultdict(int)
-	for item in station_items:
+	container_map = {}
+	for doc in data:
 		try:
-			item_name, price = types[item['type_id']]
+			item_name, price = types[doc['type_id']]
+			if price is None:
+				price = 0
 		except KeyError:
-			item_name, price = item['type_id'], 0
-		quantity = item.get('quantity', 1)
+			item_name, price = doc['type_id'], 0
+		quantity = doc.get('quantity', 1)
+
+		location_type = doc['location_type']
+		location_id = doc['location_id']
 		total_price = quantity * price
-		station_id = item['location_id']
-		item_map[station_id].append((item_name, quantity, total_price))
-		station_totals[station_id] += total_price
+		item = Item(doc['type_id'], item_name, quantity, total_price, location_type, location_id)
+		container_map[doc['item_id']] = item
+
+	# build tree
+	station_map = defaultdict(list)
+	for item_id, item in container_map.items():
+		if item.location_type == 'station':
+			station_map[item.location_id].append(item)
+		else:
+			container = container_map[item.location_id]
+			container.children.append(item)
+			item.parent = container
+
+	# calculate cumulative prices
+	for item in container_map.values():
+		if item.children: # only leaf nodes
+			continue
+		while item.parent:
+			item.parent.cumulative_price += item.cumulative_price
+			item = item.parent
 
 	stations = db.stations(tuple(station_ids))
 	all_items = []
-	for station_id, item_list in item_map.items():
+	for station_id, item_list in station_map.items():
 		station_name = stations.get(station_id, station_id)
-		all_items.append((station_name, station_totals[station_id], item_list))
+		station_total = sum(filter(None, map(operator.attrgetter('cumulative_price'), item_list)))
+		all_items.append((station_name, station_total, item_list))
 	all_items.sort(key=operator.itemgetter(1), reverse=True) # sort by total item price
 
 	return Response.render(request, 'char_assets.jinja2',
 			{'char_id': char_id, 'char_name': char_name, 'all_items': all_items})
+
+class Item:
+	def __init__(self, type_id, name, quantity, total_price, location_type, location_id):
+		self.type_id = type_id
+		self.name = name
+		self.quantity = quantity
+		self.total_price = self.cumulative_price = total_price
+		self.location_type = location_type
+		self.location_id = location_id
+		self.parent = None
+		self.children = []
 
 app = PigWig(routes, template_dir=template_dir, cookie_secret=config.cookie_secret)
 def main():
