@@ -190,7 +190,15 @@ def char_assets(request, user_id, username, char_id):
 		station_name = stations.get(station_id, station_id)
 		station_total = sum(filter(None, map(operator.attrgetter('cumulative_price'), item_list)))
 		all_items.append((station_name, station_total, item_list))
-	all_items.sort(key=operator.itemgetter(1), reverse=True) # sort by total item price
+
+	# sort stations by total item price
+	all_items.sort(key=operator.itemgetter(1), reverse=True)
+	for _, _, item_list in all_items:
+		# sort items in station by cumulative price
+		item_list.sort(key=operator.attrgetter('cumulative_price'), reverse=True)
+		for item in item_list:
+			# sort first level of subitems by cumulative price
+			item.children.sort(key=operator.attrgetter('cumulative_price'), reverse=True)
 
 	return Response.render(request, 'char_assets.jinja2',
 			{'char_id': char_id, 'char_name': char_name, 'all_items': all_items})
