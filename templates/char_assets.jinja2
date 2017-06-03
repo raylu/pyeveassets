@@ -12,15 +12,19 @@
 				<tr>
 					<td>
 						{% if item.quantity != 1 %}
-							{{ item.quantity }}✕
+							{{ item.quantity }}×
 						{% endif %}
 					</td>
 					<td>
+						<img src="https://imageserver.eveonline.com/Type/{{ item.type_id }}_32.png" height="32" width="32">
 						{% if item.children %}
 							<a href="" data-id="{{ item.item_id }}">{{ item.name }}</a>
 							<ul id="{{ item.item_id }}">
 								{% for subitem in item.children recursive %}
-									<li>{{ subitem.name }}</li>
+									<li>
+										<img src="https://imageserver.eveonline.com/Type/{{ subitem.type_id }}_32.png" height="32" width="32">
+										{{ subitem.name }}
+									</li>
 									{% if subitem.children %}
 										<ul>{{ loop(subitem.children) }}</ul>
 									{% endif %}
